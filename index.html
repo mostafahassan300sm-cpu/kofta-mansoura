@@ -9,8 +9,9 @@
 :root{
   --black:#0A0A0A;--gold:#C9A84C;--gold2:#F0D080;--gold3:#8B6914;
   --gray1:#141414;--gray2:#1E1E1E;--gray3:#2A2A2A;--gray4:#383838;
-  --text:#E4D9C0;--muted:#6B6B6B;--green:#2E7D32;--green2:#4CAF50;
+  --text:#E4D9C0;--muted:#A8A296;--green:#2E7D32;--green2:#4CAF50;
   --danger:#C62828;--blue:#1565C0;--blue2:#42A5F5;
+  --white:#F7F5F0;--red:#FF5252;--red2:#D32F2F;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Cairo',sans-serif;background:var(--black);color:var(--text);min-height:100vh;direction:rtl;}
@@ -49,13 +50,12 @@ body{font-family:'Cairo',sans-serif;background:var(--black);color:var(--text);mi
 .sc-lbl{font-size:10px;color:var(--muted);margin-top:4px;}
 
 /* ─── TABLE ─── */
-.tw{background:var(--gray2);border:1px solid var(--gray3);border-radius:10px;overflow:auto;}
-table{width:100%;border-collapse:collapse;min-width:500px;}
-th{background:var(--gray3);color:var(--gold);font-size:11px;font-weight:700;padding:10px 12px;text-align:right;border-bottom:1px solid #333;white-space:nowrap;}
-td{padding:9px 12px;font-size:12px;border-bottom:1px solid #191919;vertical-align:middle;}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:rgba(201,168,76,.025);}
-tfoot td{background:var(--gray3);color:var(--gold);font-weight:700;font-size:11px;padding:10px 12px;}
+.tw{background:var(--gray2);border:1px solid var(--gray3);border-radius:10px;overflow:auto;padding:8px;}
+table{width:100%;border-collapse:separate;border-spacing:4px;min-width:500px;}
+th{background:var(--gray3);color:var(--gold);font-size:11px;font-weight:700;padding:9px 11px;text-align:right;white-space:nowrap;border-radius:6px;border:1px solid var(--gold3);}
+td{padding:8px 11px;font-size:12px;vertical-align:middle;color:var(--white);background:var(--gray1);border:1px solid #2C2C2C;border-radius:6px;}
+tr:hover td{background:#232323;border-color:var(--gold3);}
+tfoot td{background:var(--gray3);color:var(--gold);font-weight:700;font-size:11px;padding:9px 11px;border:1px solid var(--gold3);}
 
 /* ─── INLINE EDIT INPUT ─── */
 .cell-inp{width:80px;background:rgba(201,168,76,.07);border:1px solid var(--gold3);color:var(--text);border-radius:5px;padding:4px 7px;font-size:12px;font-family:'Cairo',sans-serif;text-align:center;}
@@ -63,10 +63,11 @@ tfoot td{background:var(--gray3);color:var(--gold);font-weight:700;font-size:11p
 
 /* ─── BADGES ─── */
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
-.br{background:rgba(139,26,26,.3);color:#EF9A9A;}
+.br{background:var(--red2);color:var(--white);}
+.bg{background:var(--gold);color:#1A1200;}
+.bgr{background:var(--green);color:var(--white);}
 .bb{background:rgba(21,101,192,.3);color:#90CAF9;}
-.bg{background:rgba(201,168,76,.15);color:var(--gold);}
-.bgr{background:rgba(46,125,50,.3);color:#A5D6A7;}
+
 .bgy{background:rgba(80,80,80,.25);color:#CCC;}
 
 /* ─── BUTTONS ─── */
@@ -150,7 +151,7 @@ tfoot td{background:var(--gray3);color:var(--gold);font-weight:700;font-size:11p
 .conf-sub{font-size:11px;color:var(--muted);margin-bottom:18px;}
 
 /* ─── VALUE COLORS ─── */
-.vp{color:#A5D6A7;}.vn{color:#EF9A9A;}.vz{color:var(--gold);}
+.vp{color:#66D16A;font-weight:700;}.vn{color:var(--red);font-weight:700;}.vz{color:var(--gold2);font-weight:700;}
 
 /* ─── DOT ─── */
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-left:5px;}
@@ -1954,7 +1955,7 @@ function renderReport() {
     var actual = closingStock[item.name];
     var diff = (actual!==null&&actual!==undefined) ? theo-actual : null;
     totRecv += t.recv; totWaste += t.waste; totSold += sold;
-    var dc = diff===null?'':(diff>0?'vp':diff<0?'vn':'vz');
+    var dc = diff===null?'':(diff>0?'vn':diff<0?'vp':'vz'); // عجز(diff>0)=أحمر | زيادة(diff<0)=أخضر
     var status = diff===null?'&mdash;':diff>0?'<span class="badge bgr">زيادة</span>':diff<0?'<span class="badge br">عجز</span>':'<span class="badge bg">متوازن</span>';
     return '<tr>'
       +'<td><strong>'+item.name+'</strong></td>'
@@ -2063,7 +2064,7 @@ function renderReport() {
     var t=getTotals(item.name);var sold=getSold(item.name);
     var theo=item.opening+t.recv+t.trIn-sold-t.trOut-t.waste;
     var actual=closingStock[item.name];
-    return actual!==null&&actual!==undefined&&theo<actual;
+    return actual!==null&&actual!==undefined&&theo>actual; // عجز = النظري أكبر من الفعلي
   }).length;
   document.getElementById('rptStats').innerHTML=[
     '<div class="sc"><div class="sc-num vz">'+f(totalSoldOf('haw')+totalSoldOf('kofta'))+'</div><div class="sc-lbl">إجمالي اللحوم المباعة (كيلو)</div></div>',
