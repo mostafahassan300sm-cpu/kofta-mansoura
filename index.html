@@ -1956,7 +1956,7 @@ function renderReport() {
     var diff = (actual!==null&&actual!==undefined) ? theo-actual : null;
     totRecv += t.recv; totWaste += t.waste; totSold += sold;
     var dc = diff===null?'':(diff>0?'vn':diff<0?'vp':'vz'); // عجز(diff>0)=أحمر | زيادة(diff<0)=أخضر
-    var status = diff===null?'&mdash;':diff>0?'<span class="badge bgr">زيادة</span>':diff<0?'<span class="badge br">عجز</span>':'<span class="badge bg">متوازن</span>';
+    var status = diff===null?'&mdash;':diff>0?'<span class="badge br">عجز</span>':diff<0?'<span class="badge bgr">زيادة</span>':'<span class="badge bg">متوازن</span>';
     return '<tr>'
       +'<td><strong>'+item.name+'</strong></td>'
       +'<td style="color:var(--muted);">'+item.unit+'</td>'
