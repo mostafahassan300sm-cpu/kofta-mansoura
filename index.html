@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>نظام المخزون — كوفتا المنصورة يونيو 2026</title>
+<title>Mostafa Hassan — نظام المخزون كوفتا المنصورة (تحديث 22/6/2026)</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
 :root{
@@ -211,7 +211,7 @@ tfoot td{background:var(--gray3);color:var(--gold);font-weight:700;font-size:11p
 <div class="topbar">
   <div class="logo">
     <div class="logo-icon">🍖</div>
-    <div><div class="logo-name">كوفتا المنصورة</div><div class="logo-sub">نظام إدارة المخزون — يونيو 2026</div></div>
+    <div><div class="logo-name">Mostafa Hassan <span style="font-size:10px;background:var(--gold);color:#1A1200;padding:2px 7px;border-radius:10px;font-weight:700;vertical-align:middle;">🆕 تحديث 22/6/2026</span></div><div class="logo-sub">كوفتا المنصورة — نظام إدارة المخزون</div></div>
   </div>
   <div style="display:flex;gap:6px;align-items:center;">
     <button class="btn btn-outline btn-xs" onclick="openSyncModal()" title="إعدادات المزامنة">
@@ -327,7 +327,7 @@ tfoot td{background:var(--gray3);color:var(--gold);font-weight:700;font-size:11p
   <div class="tw"><table>
     <thead><tr>
       <th>الكود</th><th>الصنف</th><th>الكمية</th>
-      <th>كفته (كيلو)</th><th>حواوشي (كيلو)</th><th>طماطم (كيلو)</th>
+      <th>كفته (كيلو)</th><th>حواوشي (عدد)</th><th>طماطم (كيلو)</th>
       <th>طحينة (كيلو)</th><th>رايب (كيلو)</th><th>كولا (علبة)</th>
       <th>مياه (علبة)</th><th>شيبسي</th><th>ايس كريم</th><th>ويسكي</th><th>ريد بول</th>
       <th></th>
@@ -826,7 +826,7 @@ tfoot td{background:var(--gray3);color:var(--gold);font-weight:700;font-size:11p
 // ════════════════════════════════════════════════════════════════
 
 let items = [
-  {id:1, name:'حواوشي',          cat:'لحوم',    unit:'كيلو',  recipe:1,    allowed:1, opening:743,    notes:''},
+  {id:1, name:'حواوشي',          cat:'لحوم',    unit:'عدد',  recipe:1,    allowed:1, opening:743,    notes:'الاستهلاك = عدد الساندوتشات المباعة مباشرة (ريسبي 1:1)'},
   {id:2, name:'كفته',            cat:'لحوم',    unit:'كيلو',  recipe:0.1,  allowed:1, opening:199,    notes:''},
   {id:3, name:'مياه معدنيه ص',   cat:'مشروبات', unit:'علبة',  recipe:1,    allowed:1, opening:66,     notes:''},
   {id:4, name:'ريد بول',         cat:'مشروبات', unit:'علبة',  recipe:1,    allowed:1, opening:6,      notes:''},
@@ -1125,7 +1125,7 @@ function renderSalesStats(){
   document.getElementById('salesStats').innerHTML=[
     `<div class="sc"><div class="sc-num">${salesData.length}</div><div class="sc-lbl">أصناف</div></div>`,
     `<div class="sc"><div class="sc-num">${f(totalSoldOf('kofta'))}</div><div class="sc-lbl">كفته (كيلو)</div></div>`,
-    `<div class="sc"><div class="sc-num">${f(totalSoldOf('haw'))}</div><div class="sc-lbl">حواوشي (كيلو)</div></div>`,
+    `<div class="sc"><div class="sc-num">${f(totalSoldOf('haw'))}</div><div class="sc-lbl">حواوشي (عدد)</div></div>`,
     `<div class="sc"><div class="sc-num">${f0(directTotal('cola'))}</div><div class="sc-lbl">كولا (علبة)</div></div>`,
     `<div class="sc"><div class="sc-num">${f(totalSoldOf('raib'))}</div><div class="sc-lbl">رايب (كيلو)</div></div>`,
     `<div class="sc"><div class="sc-num">${f(totalSoldOf('tom'))}</div><div class="sc-lbl">طماطم (كيلو)</div></div>`,
@@ -1523,9 +1523,9 @@ function renderAnalysis(){
     const unitLabel = item.unit==='قطعة'?'قطعة':item.unit==='كيلو'?'كجم':item.unit;
 
     const soldCount = getSoldCount(item.name);
-    const soldDisplay = soldCount!==null
-      ? `${f(sold)} كجم <span style="color:var(--muted);font-size:9px;">(${f0(soldCount)} ${item.name==='حواوشي'?'ساندوتش':'وحدة'})</span>`
-      : f(sold);
+    const soldDisplay = (soldCount!==null && item.name!=='حواوشي')
+      ? `${f(sold)} ${unitLabel} <span style="color:var(--muted);font-size:9px;">(${f0(soldCount)} ${item.name==='كفته'?'ساندوتش':'وحدة'})</span>`
+      : `${f(sold)} ${unitLabel}`;
 
     return `<tr>
       <td><strong>${item.name}</strong> <span style="font-size:9px;color:var(--muted);">(${unitLabel})</span></td>
@@ -1907,7 +1907,7 @@ function renderSalesAnalysis() {
   }
 
   var summary = [
-    {name:'حواوشي',    val:f(hawTotal),   unit:'كيلو',  pct: pct(hawTotal, hawRecv)},
+    {name:'حواوشي',    val:f0(hawTotal),   unit:'عدد',  pct: pct(hawTotal, hawRecv)},
     {name:'كفته',      val:f(koftaTotal), unit:'كيلو',  pct: pct(koftaTotal, koftaRecv)},
     {name:'طماطم',     val:f(tomTotal),   unit:'كيلو',  pct: '&mdash;'},
     {name:'طحينة',     val:f(tahTotal),   unit:'كيلو',  pct: '&mdash;'},
@@ -1930,7 +1930,7 @@ function renderSalesAnalysis() {
 
   // Stats bar
   document.getElementById('saStats').innerHTML = [
-    '<div class="sc"><div class="sc-num vz">' + f(hawTotal)   + '</div><div class="sc-lbl">حواوشي مستهلك (كيلو)</div></div>',
+    '<div class="sc"><div class="sc-num vz">' + f0(hawTotal)   + '</div><div class="sc-lbl">حواوشي مستهلك (عدد)</div></div>',
     '<div class="sc"><div class="sc-num vz">' + f(koftaTotal) + '</div><div class="sc-lbl">كفته مستهلك (كيلو)</div></div>',
     '<div class="sc"><div class="sc-num vp">' + f(tomTotal)   + '</div><div class="sc-lbl">طماطم مستهلك (كيلو)</div></div>',
     '<div class="sc"><div class="sc-num vp">' + f(tahTotal)   + '</div><div class="sc-lbl">طحينة مستهلكة (كيلو)</div></div>',
@@ -1982,7 +1982,7 @@ function renderReport() {
 
   // Sales
   var salesSum = [
-    {name:'حواوشي',    val:f(totalSoldOf('haw')),   unit:'كيلو'},
+    {name:'حواوشي',    val:f0(totalSoldOf('haw')),   unit:'عدد'},
     {name:'كفته',      val:f(totalSoldOf('kofta')),  unit:'كيلو'},
     {name:'طماطم',     val:f(totalSoldOf('tom')),    unit:'كيلو'},
     {name:'طحينة',     val:f(totalSoldOf('tah')),    unit:'كيلو'},
@@ -2100,6 +2100,13 @@ function applyAllData(data){
   if(typeof data.nextItemId==='number') nextItemId = data.nextItemId;
   if(typeof data.nextSaleId==='number') nextSaleId = data.nextSaleId;
   if(typeof data.nextMaintId==='number') nextMaintId = data.nextMaintId;
+  fixHawashiUnit(); // ترقيع: تصحيح وحدة الحواوشي القديمة (كانت محفوظة كيلو) لتصبح عدد دائماً
+}
+
+// تصحيح دائم: أي بيانات قديمة محفوظة لصنف الحواوشي بوحدة "كيلو" يتم تحويلها لـ"عدد" تلقائياً عند كل تحميل
+function fixHawashiUnit(){
+  const h = items.find(i=>i.name==='حواوشي');
+  if(h && h.unit!=='عدد') h.unit='عدد';
 }
 
 // ── حفظ تلقائي في المتصفح (localStorage) — يحدث تلقائياً عند أي تغيير
@@ -2291,17 +2298,34 @@ function getDeviceId(){
 }
 
 function pushToCloud(silent){
-  if(!fbDb || !branchName){ showToast('❌ غير متصل بالسحاب'); return; }
+  if(!fbDb || !branchName){ if(!silent) showToast('❌ غير متصل بالسحاب'); return; }
+  if(!navigator.onLine){ setOfflineIndicator(true); return; } // لا داعي للمحاولة بدون نت
   const data = collectAllData();
   data._lastWriter = getDeviceId();
   data._updatedAtMillis = Date.now();
   fbDb.collection('branches').doc(branchName).set(data)
     .then(()=>{
+      setOfflineIndicator(false);
       if(!silent) showToast('⬆️ تم رفع بياناتك للسحاب بنجاح');
       const t = document.getElementById('lastSyncTime');
       if(t) t.textContent = 'آخر رفع: '+new Date().toLocaleTimeString('ar-EG');
     })
-    .catch(err=> showToast('❌ فشل الرفع: '+err.message));
+    .catch(err=>{
+      setOfflineIndicator(true);
+      if(!silent) showToast('❌ فشل الرفع: '+err.message);
+    });
+}
+
+// مؤشر هادئ لحالة الأوفلاين — بدون رسائل تنبيه مخيفة، فقط أيقونة توضح أن البيانات محفوظة محلياً وستُرفع تلقائياً
+function setOfflineIndicator(isOffline){
+  const icon = document.getElementById('syncIcon');
+  const txt  = document.getElementById('syncStatusText');
+  if(!cloudConnected) return; // لا تظهر هذا المؤشر إلا لمن فعّل المزامنة السحابية أصلاً
+  if(icon) icon.textContent = isOffline ? '🟡' : '🟢';
+  if(txt){
+    txt.style.display = 'inline';
+    txt.textContent = isOffline ? ' بدون نت — محفوظ محلياً' : ' متصل';
+  }
 }
 
 function pullFromCloud(){
@@ -2332,9 +2356,17 @@ function disconnectCloud(){
 let _cloudPushDebounce = null;
 function debouncedCloudPush(){
   if(!cloudConnected || isApplyingRemoteUpdate) return;
+  if(!navigator.onLine){ setOfflineIndicator(true); return; } // بدون نت: البيانات محفوظة محلياً فقط حالياً، لا داعي للمحاولة
   clearTimeout(_cloudPushDebounce);
   _cloudPushDebounce = setTimeout(()=>pushToCloud(true), 1500);
 }
+
+// لما النت يرجع تلقائياً يرفع آخر نسخة محفوظة فوراً بدون انتظار
+window.addEventListener('online', ()=>{
+  setOfflineIndicator(false);
+  if(cloudConnected) pushToCloud(true);
+});
+window.addEventListener('offline', ()=>{ setOfflineIndicator(true); });
 
 // محاولة الاتصال التلقائي إذا كان الجهاز متصلاً مسبقاً بفرع
 function tryAutoConnectCloud(){
@@ -2350,6 +2382,7 @@ function tryAutoConnectCloud(){
 // ════════════════════════════════════════════════════════════════
 preloadExcelData();
 const restored = autoLoadLocal(); // محاولة استرجاع آخر بيانات محفوظة في هذا المتصفح
+if(restored) autoSaveLocal(); // حفظ أي تصحيحات تلقائية (مثل وحدة الحواوشي) فوراً بشكل دائم
 renderItemStats();renderCatFilter();renderItemsTable();
 if(restored) showToast('📂 تم تحميل آخر بيانات محفوظة على هذا الجهاز');
 tryAutoConnectCloud(); // إعادة الاتصال التلقائي بالمزامنة إذا كان هذا الجهاز مرتبطاً بفرع من قبل
