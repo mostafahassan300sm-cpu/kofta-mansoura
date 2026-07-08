@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>معادلة كوفتا - كوفتا المنصورة</title>
+<style>
+  :root{
+    --gold:#FFD700; --gold-dim:#D4AF37; --black:#000000; --panel:#0b0b0b;
+    --green:#00C853; --red:#FF3B30; --orange:#FF8C00; --border:#3a3020;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;min-height:100vh;background:var(--black);color:var(--gold);font-family:"Tahoma","Segoe UI",sans-serif;padding-bottom:60px;}
+  header{position:sticky;top:0;z-index:20;background:var(--black);border-bottom:2px solid var(--gold-dim);padding:14px 10px 0;}
+  h1{margin:0 0 10px;text-align:center;font-size:clamp(18px,4vw,26px);font-weight:800;}
+  .tabs{display:flex;overflow-x:auto;gap:6px;padding-bottom:10px;scrollbar-width:thin;}
+  .tab{
+    flex:0 0 auto;padding:9px 16px;border-radius:20px 20px 0 0;background:#151208;
+    color:var(--gold-dim);font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid var(--border);
+    border-bottom:none;white-space:nowrap;
+  }
+  .tab.active{background:linear-gradient(180deg,var(--gold),var(--gold-dim));color:#000;}
+  main{max-width:1100px;margin:0 auto;padding:16px 10px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;}
+  .card h2{margin:0 0 12px;font-size:18px;color:var(--gold);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:7px 6px;text-align:center;border-bottom:1px solid var(--border);}
+  th{background:#151208;color:var(--gold);font-size:12.5px;position:sticky;top:0;}
+  td.name{text-align:right;padding-right:10px;color:var(--gold);font-weight:700;white-space:nowrap;}
+  .tablewrap{overflow-x:auto;max-height:70vh;overflow-y:auto;border:1px solid var(--border);border-radius:10px;}
+  input[type=number],input[type=text],input[type=date]{
+    width:74px;background:#111;color:var(--gold);border:1px solid var(--border);border-radius:6px;
+    padding:5px 4px;text-align:center;font-size:13px;
+  }
+  input.wide{width:150px;text-align:right;padding-right:8px;}
+  .toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;}
+  button{background:linear-gradient(180deg,var(--gold),var(--gold-dim));color:#000;border:none;border-radius:9px;
+    padding:9px 16px;font-size:13.5px;font-weight:700;cursor:pointer;}
+  button.secondary{background:transparent;border:1px solid var(--gold-dim);color:var(--gold);}
+  button.danger{background:var(--red);color:#fff;}
+  .pill{background:#151208;border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--gold-dim);display:inline-block;margin:2px;}
+  .pill b{color:var(--gold);}
+  .badge-green{background:var(--green);color:#000;font-weight:800;border-radius:8px;padding:3px 8px;}
+  .badge-red{background:var(--red);color:#fff;font-weight:800;border-radius:8px;padding:3px 8px;}
+  .badge-neutral{background:#222;color:var(--gold-dim);font-weight:700;border-radius:8px;padding:3px 8px;}
+  .cell-red{background:rgba(255,59,48,.25);color:#ff8a80;font-weight:800;}
+  .cell-orange{background:rgba(255,140,0,.25);color:#ffcc80;font-weight:800;}
+  .cell-green{background:rgba(0,200,83,.2);color:#69f0ae;font-weight:800;}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--green);color:#000;
+    padding:10px 22px;border-radius:30px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:50;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+  .note{font-size:12px;color:var(--gold-dim);margin-top:8px;line-height:1.8;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr;}}
+  .small{font-size:11.5px;color:var(--gold-dim);}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍖 معادلة كوفتا — كوفتا المنصورة SAB 4</h1>
+  <div class="tabs" id="tabs"></div>
+</header>
+<main id="main"></main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= بيانات أساسية (الريسبي + الخام الحالي) ================= */
+const RECIPES = {"1801": {"name": "كفتة", "factors": {"كفتة": 0.1}}, "1802": {"name": "حواوشي", "factors": {"حواوشي": 1}}, "1806": {"name": "كفتة دبل", "factors": {"كفتة": 0.2}}, "1830": {"name": "حواوشي اسبايسي", "factors": {"حواوشي": 1}}, "1840": {"name": "كيس شيبسي", "factors": {"شيبسي": 1}}, "1865": {"name": "مياة معدنية", "factors": {"مياة": 1}}, "1866": {"name": "رايب توت لمون", "factors": {"رايب": 0.18}}, "1867": {"name": "في سفن كولا", "factors": {"كولا": 1}}, "1868": {"name": "في سفن توت", "factors": {"كولا": 1}}, "1869": {"name": "في سفن ليمون", "factors": {"كولا": 1}}, "1870": {"name": "في سفن رمان", "factors": {"كولا": 1}}, "1871": {"name": "في سفن اناناس", "factors": {"كولا": 1}}, "1872": {"name": "في سفن جوز اناناس", "factors": {"كولا": 1}}, "1873": {"name": "كولا زيرو", "factors": {"كولا": 1}}, "1876": {"name": "في سفن صودا", "factors": {"كولا": 1}}, "1877": {"name": "ريد بول", "factors": {"ريد_بول": 1}}, "1878": {"name": "رايب كيوي بشون فروت", "factors": {"رايب": 0.18}}, "1879": {"name": "رايب خوخ كراميل", "factors": {"رايب": 0.18}}, "1880": {"name": "رايب كيوي  ", "factors": {"رايب": 0.18}}, "1881": {"name": "رايب كيوي كبير", "factors": {"رايب": 0.75}}, "1882": {"name": "رايب بلوبيري كبير", "factors": {"رايب": 0.75}}, "1883": {"name": "ايس كريم بالبلح", "factors": {"ايس_كريم": 1}}, "1884": {"name": "ايس كريم مانجو", "factors": {"ايس_كريم": 1}}, "3879": {"name": "ايس كريم بالبلح", "factors": {"ايس_كريم": 1}}, "3901": {"name": "شيبسي", "factors": {"شيبسي": 1}}, "3902": {"name": "v7", "factors": {"كولا": 1}}, "3931": {"name": "شيبسي", "factors": {"شيبسي": 1}}, "3932": {"name": "في سفن كولا", "factors": {"كولا": 1}}, "3935": {"name": "رايب  ", "factors": {"رايب": 0.18}}, "3937": {"name": "في سفن اناناس", "factors": {"كولا": 1}}, "3938": {"name": "في سفن رمان", "factors": {"كولا": 1}}, "3939": {"name": "في سفن توت", "factors": {"كولا": 1}}, "3940": {"name": "في سفن ليمون نعناع", "factors": {"كولا": 1}}, "3941": {"name": "في سفن جوز ", "factors": {"كولا": 1}}, "3942": {"name": "كولا زيرو", "factors": {"كولا": 1}}, "3943": {"name": "رايب توت ليمون", "factors": {"رايب": 0.18}}, "3944": {"name": "رايب كيوي", "factors": {"رايب": 0.18}}, "3945": {"name": "رايب بشون فروت", "factors": {"رايب": 0.18}}, "3956": {"name": "رايب خوخ  ", "factors": {"رايب": 0.18}}, "5401": {"name": "ساندوتش كفتة", "factors": {"كفتة": 0.1}}, "5402": {"name": "ساندوتش جواوشي", "factors": {"حواوشي": 1}}, "5403": {"name": "س كفتة دبل", "factors": {"كفتة": 0.2}}, "5404": {"name": "حواوشي اسبايسي", "factors": {"حواوشي": 1}}, "5429": {"name": "كفتة اسطاف", "factors": {"كفتة": 0.1}}, "5430": {"name": "حواوشي اسطاف", "factors": {"حواوشي": 1}}, "6421": {"name": "كفتة", "factors": {"كفتة": 0.1}}, "6422": {"name": "حواوشي", "factors": {"حواوشي": 1}}, "6423": {"name": "شيبسي", "factors": {"شيبسي": 1}}};
+
+const DEFAULT_RAW = [{"code": "811", "name": "كومنت هام", "qty": 22}, {"code": "812", "name": "طلبات كاش", "qty": 101}, {"code": "813", "name": "طلبات فيزا", "qty": 111}, {"code": "814", "name": "منيوز كاش", "qty": 7}, {"code": "819", "name": "وفرها مجانى", "qty": 20}, {"code": "820", "name": "k online cash", "qty": 23}, {"code": "821", "name": "k online visa", "qty": 9}, {"code": "828", "name": "fees 9", "qty": 28}, {"code": "1801", "name": "كفته", "qty": 372}, {"code": "1802", "name": "حواوشى", "qty": 203}, {"code": "1803", "name": "بوكس 4 ساندوتش", "qty": 348}, {"code": "1804", "name": "بوكس 8 ساندوتش", "qty": 134}, {"code": "1805", "name": "بوكس 10 ساندوتش", "qty": 125}, {"code": "1806", "name": "كفته دبل", "qty": 141}, {"code": "1807", "name": "بوكس 3 ساندوتش", "qty": 356}, {"code": "1815", "name": "بوكس وفرها 3", "qty": 42}, {"code": "1817", "name": "بوكس وفرها 2", "qty": 9}, {"code": "1825", "name": "منيوز 2 ساندوتش", "qty": 6}, {"code": "1830", "name": "حواوشى اسبايسى", "qty": 63}, {"code": "1831", "name": "مخلل", "qty": 71}, {"code": "1832", "name": "خيار مخلل", "qty": 57}, {"code": "1833", "name": "طحينه", "qty": 98}, {"code": "1834", "name": "سلطه بلدى", "qty": 39}, {"code": "1835", "name": "ويسكى", "qty": 207}, {"code": "1836", "name": "طماطم مخلله", "qty": 87}, {"code": "1840", "name": "كيس شيبسى", "qty": 282}, {"code": "1842", "name": "طحينه اسبايسى صغير", "qty": 82}, {"code": "1843", "name": "بوكس الحرش", "qty": 27}, {"code": "1865", "name": "مياه معدنيه", "qty": 180}, {"code": "1866", "name": "رايب توت ليمون", "qty": 207}, {"code": "1867", "name": "فى سفن كولا", "qty": 206}, {"code": "1868", "name": "فى سفن توت", "qty": 13}, {"code": "1869", "name": "فى سفن ليمون", "qty": 17}, {"code": "1871", "name": "فى سفن اناناس", "qty": 1}, {"code": "1872", "name": "فى سفن جوز واناناس", "qty": 6}, {"code": "1873", "name": "كولا زيرو", "qty": 9}, {"code": "1877", "name": "ريد بول", "qty": 1}, {"code": "1878", "name": "رايب كيوى بشون فروت", "qty": 71}, {"code": "1883", "name": "ايس كريم بالبلح", "qty": 11}, {"code": "1884", "name": "ايس كريم مانجو", "qty": 6}, {"code": "1923", "name": "ميجا تربو بوكس", "qty": 32}, {"code": "1954", "name": "وجبه اسطاف", "qty": 166}, {"code": "3871", "name": "مخلل", "qty": 46}, {"code": "3872", "name": "خيار مخلل", "qty": 32}, {"code": "3873", "name": "طحينه", "qty": 37}, {"code": "3874", "name": "طحينه اسبايسي", "qty": 34}, {"code": "3875", "name": "سلطه بلدى", "qty": 63}, {"code": "3876", "name": "ويسكى", "qty": 49}, {"code": "3877", "name": "طماطم مخلله", "qty": 40}, {"code": "3878", "name": "اختيارات", "qty": 32}, {"code": "3879", "name": "ايس كريم بالبلح", "qty": 32}, {"code": "3901", "name": "شيبسى", "qty": 58}, {"code": "3902", "name": "v7", "qty": 51}, {"code": "3932", "name": "فى سفن كولا", "qty": 39}, {"code": "3961", "name": "كومبو", "qty": 7}, {"code": "5401", "name": "ساندوتش كفته", "qty": 3404}, {"code": "5402", "name": "ساندوتش حواوشى", "qty": 1429}, {"code": "5403", "name": "س كفته دبل", "qty": 4}, {"code": "5404", "name": "حواوشى اسبايسى", "qty": 185}, {"code": "5429", "name": "كفته اسطاف", "qty": 166}, {"code": "5430", "name": "حواوشى اسطاف", "qty": 166}, {"code": "5461", "name": "بدون بصل", "qty": 1}, {"code": "5465", "name": "ساده", "qty": 64}, {"code": "5467", "name": "تحميص زياده", "qty": 13}, {"code": "6396", "name": "ويسكى", "qty": 6}, {"code": "6421", "name": "كفته", "qty": 6}, {"code": "6422", "name": "حواوشى", "qty": 6}, {"code": "6423", "name": "شيبسى", "qty": 38}];
+
+const ITEM_NAMES = ['حواوشي','كفته','مياة معدنيه','ريد بول','كولا كانز','شيبسي','رايب','ايس كريم بلح','فحم'];
+const ITEM_MATERIAL = {'حواوشي':'حواوشي','كفته':'كفتة','مياة معدنيه':'مياة','ريد بول':'ريد_بول','كولا كانز':'كولا','شيبسي':'شيبسي','رايب':'رايب','ايس كريم بلح':'ايس_كريم'};
+
+/* ================= حالة التطبيق ================= */
+let state = {
+  raw: JSON.parse(JSON.stringify(DEFAULT_RAW)),
+  analysis: {}, // name -> {b,c,d,f,g,h}
+  ayesh: [],     // 31 يوم
+  siyana: []
+};
+ITEM_NAMES.forEach(n => state.analysis[n] = {b:0,c:0,d:0,f:0,g:0,h:0});
+for(let i=1;i<=31;i++) state.ayesh.push({day:i, c:0,d:0,e:0,f:0,g:0});
+
+/* ================= تخزين دائم ================= */
+async function saveState(){
+  try{ await window.storage.set('kofta-state', JSON.stringify(state)); showToast('تم الحفظ ✓'); }
+  catch(e){ console.error(e); showToast('⚠️ فشل الحفظ'); }
+}
+async function loadState(){
+  try{
+    const res = await window.storage.get('kofta-state');
+    if(res && res.value){ state = JSON.parse(res.value); }
+  }catch(e){ /* أول مرة، لا يوجد بيانات محفوظة بعد */ }
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 1600);
+}
+
+/* ================= محرك حساب المواد من الخام ================= */
+function computeMaterials(){
+  const totals = {};
+  for(const item of state.raw){
+    const recipe = RECIPES[item.code];
+    if(!recipe) continue;
+    for(const [material,factor] of Object.entries(recipe.factors)){
+      totals[material] = (totals[material]||0) + (Number(item.qty)||0)*factor;
+    }
+  }
+  return totals;
+}
+function rawQtyByCode(code){
+  const it = state.raw.find(r => r.code === code);
+  return it ? (Number(it.qty)||0) : 0;
+}
+
+/* ================= حساب معادلة التحليل الكاملة ================= */
+function computeAnalysis(){
+  const materials = computeMaterials();
+  const rows = [];
+  let eKofta=0, eHawawshi=0;
+  for(const name of ITEM_NAMES){
+    const a = state.analysis[name];
+    let e;
+    if(name === 'فحم'){
+      e = null; // نحسبه بعدين بعد ما نعرف كفته وحواوشي
+    }else{
+      e = materials[ITEM_MATERIAL[name]] || 0;
+      if(name==='كفته') eKofta = e;
+      if(name==='حواوشي') eHawawshi = e;
+    }
+    rows.push({name, b:+a.b||0, c:+a.c||0, d:+a.d||0, e, f:+a.f||0, g:+a.g||0, h:+a.h||0});
+  }
+  // فحم: رسبي 84كجم = 80كجم كوفتا + 400 حواوشي (متوسط النسبتين)
+  const fahmRow = rows.find(r=>r.name==='فحم');
+  fahmRow.e = 84 * (((eKofta/80) + (eHawawshi/400)) / 2);
+
+  for(const r of rows){
+    r.i = ((r.b + r.c + r.d) - (r.e + r.f + r.g + r.h)) * -1; // الفرق
+    r.j = r.e !== 0 ? r.i / r.e : 0; // نسبة العجز
+    r.k = r.e !== 0 ? r.g / r.e : 0; // نسبة الاعدام
+    r.l = r.j - r.k; // اجمالي النسبة
+    r.aa = r.b + r.c - r.h; // الاستهلاك الفعلي (فود كوست بالكمية)
+    r.ab = r.aa - r.e; // الفرق عن المباع (تحقق)
+  }
+  return rows;
+}
+
+function computeWagabatIstaf(){
+  const kofta = rawQtyByCode('5429');
+  const hawawshi = rawQtyByCode('5430');
+  const total = kofta + hawawshi;
+  const meals = total / 2;
+  return {kofta, hawawshi, total, meals};
+}
+
+/* ================= واجهة التبويبات ================= */
+const TABS = [
+  {id:'khaam', label:'الخام'},
+  {id:'tahleel', label:'معادلة التحليل'},
+  {id:'aysh', label:'العيش'},
+  {id:'siyana', label:'صيانة'},
+];
+let activeTab = 'tahleel';
+
+function renderTabs(){
+  const el = document.getElementById('tabs');
+  el.innerHTML = '';
+  TABS.forEach(t=>{
+    const b = document.createElement('div');
+    b.className = 'tab' + (t.id===activeTab ? ' active':'');
+    b.textContent = t.label;
+    b.onclick = () => { activeTab = t.id; renderAll(); };
+    el.appendChild(b);
+  });
+}
+
+function fmt(n){
+  if(n===null || n===undefined || isNaN(n)) return '0';
+  return (Math.round(n*100)/100).toLocaleString('en-US');
+}
+
+function colorClassForDiff(v){
+  if(v < 0) return 'cell-red';
+  if(v > 0) return 'cell-green';
+  return '';
+}
+function colorClassForPct(v){
+  const a = Math.abs(v);
+  if(a > 0.05) return 'cell-red';
+  if(a > 0.02) return 'cell-orange';
+  return 'cell-green';
+}
+
+/* ---------- شيت الخام ---------- */
+function renderKhaam(){
+  let rowsHtml = state.raw.map((it,idx)=>`
+    <tr>
+      <td><input type="text" class="wide" value="${it.code}" onchange="updateRaw(${idx},'code',this.value)"></td>
+      <td><input type="text" class="wide" value="${it.name}" onchange="updateRaw(${idx},'name',this.value)"></td>
+      <td><input type="number" step="any" value="${it.qty}" onchange="updateRaw(${idx},'qty',this.value)"></td>
+      <td><button class="danger" onclick="deleteRawRow(${idx})">حذف</button></td>
+    </tr>`).join('');
+  return `
+  <div class="card">
+    <h2>📥 الخام — بيانات تقرير الكاشير</h2>
+    <div class="toolbar">
+      <button onclick="addRawRow()">➕ إضافة صنف</button>
+      <button class="secondary" onclick="pasteRaw()">📋 لصق من الحافظة (كود⇥وصف⇥كمية)</button>
+      <button class="secondary" onclick="saveState()">💾 حفظ</button>
+    </div>
+    <div class="pill">عدد الأصناف: <b>${state.raw.length}</b></div>
+    <div class="tablewrap" style="margin-top:10px;">
+      <table>
+        <thead><tr><th>كود الصنف</th><th>الوصف</th><th>الكمية</th><th>—</th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    </div>
+    <div class="note">الصق بيانات جديدة من تقرير الكاشير (Item Sales) هنا كل يوم — كل حاجة تانية (معادلة التحليل، الفحم، وجبات الاصطفاف) هتتحدث تلقائيًا.</div>
+  </div>`;
+}
+function updateRaw(idx, field, value){
+  state.raw[idx][field] = field==='qty' ? parseFloat(value)||0 : value;
+}
+function addRawRow(){ state.raw.push({code:'', name:'', qty:0}); renderAll(); }
+function deleteRawRow(idx){ state.raw.splice(idx,1); renderAll(); }
+function pasteRaw(){
+  navigator.clipboard.readText().then(text=>{
+    const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+    let added = 0;
+    for(const line of lines){
+      const parts = line.split('\t');
+      if(parts.length>=3){
+        const code = parts[0].trim(), name = parts[1].trim(), qty = parseFloat(parts[2].replace(/,/g,''));
+        if(code && !isNaN(qty)){
+          const existing = state.raw.find(r=>r.code===code);
+          if(existing) existing.qty = qty;
+          else state.raw.push({code,name,qty});
+          added++;
+        }
+      }
+    }
+    showToast(`تم استيراد ${added} صف`);
+    renderAll();
+  }).catch(()=> showToast('⚠️ اسمح للمتصفح بالوصول للحافظة'));
+}
+
+/* ---------- معادلة التحليل ---------- */
+function renderTahleel(){
+  const rows = computeAnalysis();
+  const wagabat = computeWagabatIstaf();
+  const headers = ['الصنف','أول المدة','مستلم','محول له','مباع','محول منه','اعدام','اخر المدة','الفرق','نسبة العجز','نسبة الاعدام','اجمالي النسبة','استهلاك فعلي','تحقق (فرق عن مباع)'];
+  let body = rows.map(r=>{
+    const idx = ITEM_NAMES.indexOf(r.name);
+    return `<tr>
+      <td class="name">${r.name}</td>
+      <td><input type="number" step="any" value="${r.b}" onchange="updateAnalysis('${r.name}','b',this.value)"></td>
+      <td><input type="number" step="any" value="${r.c}" onchange="updateAnalysis('${r.name}','c',this.value)"></td>
+      <td><input type="number" step="any" value="${r.d}" onchange="updateAnalysis('${r.name}','d',this.value)"></td>
+      <td>${fmt(r.e)}</td>
+      <td><input type="number" step="any" value="${r.f}" onchange="updateAnalysis('${r.name}','f',this.value)"></td>
+      <td><input type="number" step="any" value="${r.g}" onchange="updateAnalysis('${r.name}','g',this.value)"></td>
+      <td><input type="number" step="any" value="${r.h}" onchange="updateAnalysis('${r.name}','h',this.value)"></td>
+      <td class="${colorClassForDiff(r.i)}">${fmt(r.i)}</td>
+      <td class="${colorClassForPct(r.j)}">${(r.j*100).toFixed(1)}%</td>
+      <td>${(r.k*100).toFixed(1)}%</td>
+      <td class="${colorClassForPct(r.l)}">${(r.l*100).toFixed(1)}%</td>
+      <td>${fmt(r.aa)}</td>
+      <td class="${Math.abs(r.ab)>10?'cell-red':(Math.abs(r.ab)>2?'cell-orange':'cell-green')}">${fmt(r.ab)}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div class="card">
+    <h2>📊 معادلة التحليل</h2>
+    <div class="note">مستلم/محول له/محول منه/اعدام أدخلها إجمالي الفترة يدويًا (من دفاتر التوريد). "مباع" و"فحم" بيتحسبوا تلقائيًا من شيت الخام. أول المدة واخر المدة أدخلها من الجرد الفعلي.</div>
+    <div class="tablewrap" style="margin-top:10px;">
+      <table>
+        <thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+    <div class="toolbar" style="margin-top:12px;">
+      <button onclick="saveState()">💾 حفظ</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🍽️ وجبات الاصطفاف المضروبة</h2>
+    <div class="grid2">
+      <div class="pill">كفتة اسطاف: <b>${fmt(wagabat.kofta)}</b></div>
+      <div class="pill">حواوشي اسطاف: <b>${fmt(wagabat.hawawshi)}</b></div>
+      <div class="pill">الإجمالي: <b>${fmt(wagabat.total)}</b></div>
+      <div class="pill">عدد الوجبات: <b>${fmt(wagabat.meals)}</b></div>
+    </div>
+    <div class="note">محسوبة تلقائيًا من أكواد (5429، 5430) في شيت الخام.</div>
+  </div>`;
+}
+function updateAnalysis(name, field, value){
+  state.analysis[name][field] = parseFloat(value)||0;
+}
+
+/* ---------- العيش ---------- */
+function renderAysh(){
+  let body = state.ayesh.map((d,idx)=>{
+    const diff = ((+d.c||0)-(+d.d||0)-(+d.e||0)-(+d.f||0)); // استلامات-مباع-محول منه-هالك تقريباً (تبسيط)
+    return `<tr>
+      <td>${d.day}</td>
+      <td><input type="number" step="any" value="${d.c||0}" onchange="updateAysh(${idx},'c',this.value)"></td>
+      <td><input type="number" step="any" value="${d.d||0}" onchange="updateAysh(${idx},'d',this.value)"></td>
+      <td><input type="number" step="any" value="${d.e||0}" onchange="updateAysh(${idx},'e',this.value)"></td>
+      <td><input type="number" step="any" value="${d.f||0}" onchange="updateAysh(${idx},'f',this.value)"></td>
+      <td><input type="number" step="any" value="${d.g||0}" onchange="updateAysh(${idx},'g',this.value)"></td>
+    </tr>`;
+  }).join('');
+  return `
+  <div class="card">
+    <h2>🍞 تقرير العيش</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>اليوم</th><th>استلامات</th><th>مباع</th><th>محول منه</th><th>مرتجع</th><th>هالك</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+    <div class="toolbar" style="margin-top:12px;"><button onclick="saveState()">💾 حفظ</button></div>
+  </div>`;
+}
+function updateAysh(idx, field, value){ state.ayesh[idx][field] = parseFloat(value)||0; }
+
+/* ---------- صيانة ---------- */
+function renderSiyana(){
+  let body = state.siyana.map((s,idx)=>`
+    <tr>
+      <td><input type="text" value="${s.date}" onchange="updateSiyana(${idx},'date',this.value)"></td>
+      <td><input type="text" class="wide" value="${s.desc}" onchange="updateSiyana(${idx},'desc',this.value)"></td>
+      <td><input type="number" step="any" value="${s.amount}" onchange="updateSiyana(${idx},'amount',this.value)"></td>
+      <td><button class="danger" onclick="deleteSiyana(${idx})">حذف</button></td>
+    </tr>`).join('');
+  const total = state.siyana.reduce((s,x)=>s+(+x.amount||0),0);
+  return `
+  <div class="card">
+    <h2>🔧 صيانة</h2>
+    <div class="toolbar"><button onclick="addSiyana()">➕ إضافة عملية صيانة</button><button class="secondary" onclick="saveState()">💾 حفظ</button></div>
+    <div class="pill">عدد العمليات: <b>${state.siyana.length}</b></div>
+    <div class="pill">إجمالي التكلفة: <b>${fmt(total)}</b></div>
+    <div class="tablewrap" style="margin-top:10px;">
+      <table>
+        <thead><tr><th>التاريخ</th><th>البيان</th><th>المبلغ</th><th>—</th></tr></thead>
+        <tbody>${body}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+function updateSiyana(idx, field, value){ state.siyana[idx][field] = field==='amount' ? (parseFloat(value)||0) : value; }
+function addSiyana(){ state.siyana.push({date:'', desc:'', amount:0}); renderAll(); }
+function deleteSiyana(idx){ state.siyana.splice(idx,1); renderAll(); }
+
+/* ================= التصيير الرئيسي ================= */
+function renderAll(){
+  renderTabs();
+  const main = document.getElementById('main');
+  let html = '';
+  if(activeTab==='khaam') html = renderKhaam();
+  else if(activeTab==='tahleel') html = renderTahleel();
+  else if(activeTab==='aysh') html = renderAysh();
+  else if(activeTab==='siyana') html = renderSiyana();
+  main.innerHTML = html;
+}
+
+(async function init(){
+  await loadState();
+  renderAll();
+})();
+</script>
+</body>
+</html>
