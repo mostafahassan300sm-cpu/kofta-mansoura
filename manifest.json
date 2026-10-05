@@ -1,24 +1,21 @@
 {
-  "name": "معادلة كوفتا - كوفتا المنصورة SAB 4",
-  "short_name": "معادلة كوفتا",
-  "description": "نظام إدارة المخزون والمبيعات - كوفتا المنصورة",
+  "name": "كوفتا العبور — نظام إدارة المخزون والمبيعات",
+  "short_name": "كوفتا العبور",
+  "description": "تطبيق متقدم لإدارة وتدقيق ومعادلة كفتة العبور، الاستلامات والتحويلات والمبيعات",
   "start_url": "./index.html",
-  "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#000000",
-  "theme_color": "#000000",
-  "dir": "rtl",
-  "lang": "ar",
+  "orientation": "portrait-primary",
+  "background_color": "#0F172A",
+  "theme_color": "#4F46E5",
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
