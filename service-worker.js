@@ -1,58 +1,29 @@
-// service-worker.js — معادلة كوفتا (كوفتا المنصورة SAB 4)
-// نسخة الكاش: زوّدها بعد أي تعديل جوهري في الكود عشان تجبر تحديث الأجهزة
-const CACHE_VERSION = 'kofta-mansoura-v2';
-
-// الملفات الأساسية اللي هتتخزن عشان التطبيق يفتح حتى من غير نت
-// عدّل القائمة دي لو أسماء ملفاتك مختلفة
-const CORE_ASSETS = [
-  './',
-  './index.html',
-  './manifest.json'
-];
-
-// عند التثبيت: خزّن الملفات الأساسية
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_VERSION).then((cache) => cache.addAll(CORE_ASSETS))
+// Network-first: التطبيق دايمًا يجيب آخر نسخة، والكاش احتياطي لو مفيش نت
+const CACHE = 'kofta-v2';
+const ASSETS = ['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+});
+self.addEventListener('fetch', e => {
+  const req = e.request;
+  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  e.respondWith(
+    fetch(req).then(res => {
+      const copy = res.clone();
+      caches.open(CACHE).then(c => c.put(req, copy));
+      return res;
+    }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
   );
-  self.skipWaiting();
 });
 
-// عند التفعيل: امسح أي نسخ كاش قديمة
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_VERSION)
-          .map((key) => caches.delete(key))
-      )
-    )
-  );
-  self.clients.claim();
-});
-
-// استراتيجية الجلب:
-// - طلبات Firebase/API: على طول من النت (عشان البيانات تفضل لحظية)
-// - باقي الملفات (HTML/CSS/JS): جرّب النت الأول، ولو النت مقطوع استخدم الكاش
-self.addEventListener('fetch', (event) => {
-  const url = event.request.url;
-  const isDataRequest =
-    url.includes('firestore.googleapis.com') ||
-    url.includes('firebaseio.com') ||
-    url.includes('googleapis.com');
-
-  if (isDataRequest) {
-    return; // سيب الطلب يروح للشبكة عادي من غير تدخل الكاش
-  }
-
-  event.respondWith(
-    fetch(event.request, { cache: 'no-store' })
-      .then((response) => {
-        const clone = response.clone();
-        caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
-  );
+// الضغط على الإشعار يفتح التطبيق
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(self.clients.matchAll({type:'window', includeUncontrolled:true}).then(list => {
+    for (const c of list) { if ('focus' in c) return c.focus(); }
+    return self.clients.openWindow('./index.html');
+  }));
 });
